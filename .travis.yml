@@ -1,0 +1,20 @@
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t vlaew/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run -e CI=true vlaew/react-test npm test
+
+after_success:
+  - docker build -t vlaew/multi-client ./client
+  - docker build -t vlaew/multi-nginx ./nginx
+  - docker build -t vlaew/multi-server ./server
+  - docker build -t vlaew/multi-worker ./worker
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  - docker push vlaew/multi-client
+  - docker push vlaew/multi-nginx
+  - docker push vlaew/multi-server
+  - docker push vlaew/multi-worker
